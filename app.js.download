@@ -1,0 +1,481 @@
+// WOW Women Entrepreneurs Summit 2026 - Main Interactive Application Script
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Live Countdown Timer
+  initCountdown();
+
+  // 2. Mobile Menu Toggle
+  initMobileMenu();
+
+  // 3. Ticket Pass Tier Selection
+  initTicketTiers();
+
+  // 4. Registration & Digital Pass Modal
+  initRegistrationModal();
+
+  // 5. Sponsor Modal
+  initSponsorModal();
+
+  // 6. Agenda Filter Tabs
+  initAgendaFilters();
+
+  // 7. FAQ Accordion
+  initFaqAccordion();
+
+  // 8. Dynamic Star Canvas / Ambient Particle FX
+  initHeroParticles();
+});
+
+/* ==========================================================================
+   1. COUNTDOWN TIMER (Target: October 10, 2026 09:00 AM)
+   ========================================================================== */
+function initCountdown() {
+  const summitDate = new Date('2026-10-10T09:00:00+05:30').getTime();
+
+  function update() {
+    const now = new Date().getTime();
+    const distance = summitDate - now;
+
+    const daysEl = document.getElementById('cdDays');
+    const hoursEl = document.getElementById('cdHours');
+    const minsEl = document.getElementById('cdMinutes');
+    const secsEl = document.getElementById('cdSeconds');
+
+    if (!daysEl || !hoursEl || !minsEl || !secsEl) return;
+
+    if (distance < 0) {
+      daysEl.textContent = '00';
+      hoursEl.textContent = '00';
+      minsEl.textContent = '00';
+      secsEl.textContent = '00';
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    daysEl.textContent = String(days).padStart(2, '0');
+    hoursEl.textContent = String(hours).padStart(2, '0');
+    minsEl.textContent = String(minutes).padStart(2, '0');
+    secsEl.textContent = String(seconds).padStart(2, '0');
+  }
+
+  update();
+  setInterval(update, 1000);
+}
+
+/* ==========================================================================
+   2. MOBILE MENU TOGGLE
+   ========================================================================== */
+function initMobileMenu() {
+  const toggleBtn = document.getElementById('mobileMenuBtn');
+  const closeBtn = document.getElementById('closeMobileMenuBtn');
+  const menuDrawer = document.getElementById('mobileMenuDrawer');
+  const menuLinks = document.querySelectorAll('.mobile-nav-link');
+
+  if (!toggleBtn || !menuDrawer) return;
+
+  function openMenu() {
+    menuDrawer.classList.remove('translate-x-full');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    menuDrawer.classList.add('translate-x-full');
+    document.body.style.overflow = '';
+  }
+
+  toggleBtn.addEventListener('click', openMenu);
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+
+  menuLinks.forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+}
+
+/* ==========================================================================
+   3. TICKET TIER SELECTION
+   ========================================================================== */
+const TIER_DATA = {
+  delegate: {
+    name: 'Official Delegate Pass',
+    price: '₹999',
+    originalPrice: '₹2,499',
+    badge: 'Delegate Tier',
+    desc: 'Complete All-Access VIP Delegate kit including Keynote Panels, Masterclasses, High-Tea, Networking Lunch, and Verified Certificate.',
+    color: '#deb7ff'
+  },
+  founder: {
+    name: 'Founder VIP All-Access',
+    price: '₹2,499',
+    originalPrice: '₹4,999',
+    badge: 'VIP Founder Tier',
+    desc: 'Front-row priority seating, access to VIP Founder Lounge, 1-on-1 speaker speed networking, plus executive delegate gift hamper.',
+    color: '#f59e0b'
+  },
+  exhibitor: {
+    name: 'Exhibition Stall + 2 Passes',
+    price: '₹4,999',
+    originalPrice: '₹8,999',
+    badge: 'Exhibitor / Partner Tier',
+    desc: 'Dedicated 6x6ft display stall to showcase products/services to 300+ attendees, logo on official summit brochures, + 2 VIP passes.',
+    color: '#fda9ff'
+  }
+};
+
+let currentSelectedTier = 'delegate';
+
+function initTicketTiers() {
+  const tierCards = document.querySelectorAll('.ticket-tier-selector');
+  const mainPriceDisplay = document.getElementById('mainPassPrice');
+  const mainOriginalPrice = document.getElementById('mainPassOriginalPrice');
+  const mainTierBadge = document.getElementById('mainTierBadge');
+  const mainPassTitle = document.getElementById('mainPassTitle');
+  const mainPassDesc = document.getElementById('mainPassDesc');
+  const reserveBtnText = document.getElementById('reserveBtnPriceText');
+
+  tierCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const tierKey = card.getAttribute('data-tier');
+      if (!tierKey || !TIER_DATA[tierKey]) return;
+
+      currentSelectedTier = tierKey;
+      const data = TIER_DATA[tierKey];
+
+      // Update Active Card Styling
+      tierCards.forEach(c => {
+        c.classList.remove('border-amber-400', 'bg-surface-container-highest/90', 'ring-2', 'ring-amber-400/50');
+        c.classList.add('border-purple-500/20', 'bg-surface-container/60');
+      });
+
+      card.classList.remove('border-purple-500/20', 'bg-surface-container/60');
+      card.classList.add('border-amber-400', 'bg-surface-container-highest/90', 'ring-2', 'ring-amber-400/50');
+
+      // Update Featured Ticket Card
+      if (mainPriceDisplay) mainPriceDisplay.textContent = data.price;
+      if (mainOriginalPrice) mainOriginalPrice.textContent = data.originalPrice;
+      if (mainTierBadge) mainTierBadge.textContent = data.badge;
+      if (mainPassTitle) mainPassTitle.textContent = data.name;
+      if (mainPassDesc) mainPassDesc.textContent = data.desc;
+      if (reserveBtnText) reserveBtnText.textContent = `Reserve Your Spot (${data.price})`;
+    });
+  });
+}
+
+/* ==========================================================================
+   4. REGISTRATION & DIGITAL PASS MODAL
+   ========================================================================== */
+function initRegistrationModal() {
+  const modal = document.getElementById('regModal');
+  const openButtons = document.querySelectorAll('.open-register-modal');
+  const closeBtn = document.getElementById('closeModalBtn');
+  const form = document.getElementById('passForm');
+  const modalTierBadge = document.getElementById('modalTierName');
+  const modalTierPrice = document.getElementById('modalTierPrice');
+
+  // Digital Pass Result Modal
+  const passResultModal = document.getElementById('digitalPassModal');
+  const closePassModalBtn = document.getElementById('closePassModalBtn');
+  const printPassBtn = document.getElementById('printPassBtn');
+
+  function openModal(tierKey) {
+    if (tierKey && TIER_DATA[tierKey]) {
+      currentSelectedTier = tierKey;
+    }
+    const currentTier = TIER_DATA[currentSelectedTier] || TIER_DATA.delegate;
+    if (modalTierBadge) modalTierBadge.textContent = currentTier.name;
+    if (modalTierPrice) modalTierPrice.textContent = currentTier.price;
+
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    document.body.style.overflow = '';
+  }
+
+  openButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const specificTier = btn.getAttribute('data-tier') || currentSelectedTier;
+      openModal(specificTier);
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+  // Close on backdrop click
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  // Handle Form Submit
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('regFullName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const business = document.getElementById('regBusiness').value.trim() || 'Delegate / Entrepreneur';
+      const email = document.getElementById('regEmail').value.trim();
+      const selectedTier = TIER_DATA[currentSelectedTier] || TIER_DATA.delegate;
+
+      if (!name || !phone) {
+        alert('Please fill in all required fields (Name and WhatsApp Mobile Number).');
+        return;
+      }
+
+      // Generate Ticket ID
+      const ticketId = 'WOW-' + Math.floor(100000 + Math.random() * 900000);
+
+      // Populate Digital Pass UI
+      const passName = document.getElementById('passCardName');
+      const passPhone = document.getElementById('passCardPhone');
+      const passBusiness = document.getElementById('passCardBusiness');
+      const passTier = document.getElementById('passCardTier');
+      const passId = document.getElementById('passCardId');
+      const passQr = document.getElementById('passCardQr');
+
+      if (passName) passName.textContent = name;
+      if (passPhone) passPhone.textContent = phone;
+      if (passBusiness) passBusiness.textContent = business;
+      if (passTier) passTier.textContent = selectedTier.name.toUpperCase();
+      if (passId) passId.textContent = ticketId;
+
+      if (passQr) {
+        passQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&color=120324&bgcolor=deb7ff&data=WOW-SUMMIT-2026|${ticketId}|${encodeURIComponent(name)}|${encodeURIComponent(phone)}`;
+      }
+
+      // Close registration form & open Digital Pass
+      closeModal();
+      form.reset();
+
+      if (passResultModal) {
+        passResultModal.classList.remove('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Also trigger a WhatsApp share link helper
+      const whatsappMsg = encodeURIComponent(
+        `Hello WOW Summit Team! I have submitted my registration for ${selectedTier.name} (${selectedTier.price}).\n\nName: ${name}\nPhone: ${phone}\nBusiness: ${business}\nTicket ID: ${ticketId}`
+      );
+      const waButton = document.getElementById('passWhatsAppConfirmBtn');
+      if (waButton) {
+        waButton.href = `https://wa.me/919876543210?text=${whatsappMsg}`;
+      }
+    });
+  }
+
+  // Close Pass Result Modal
+  if (closePassModalBtn && passResultModal) {
+    closePassModalBtn.addEventListener('click', () => {
+      passResultModal.classList.add('opacity-0', 'pointer-events-none');
+      document.body.style.overflow = '';
+    });
+    passResultModal.addEventListener('click', (e) => {
+      if (e.target === passResultModal) {
+        passResultModal.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  // Print pass
+  if (printPassBtn) {
+    printPassBtn.addEventListener('click', () => {
+      window.print();
+    });
+  }
+}
+
+/* ==========================================================================
+   5. SPONSOR & EXHIBITION INQUIRY MODAL
+   ========================================================================== */
+function initSponsorModal() {
+  const modal = document.getElementById('sponsorModal');
+  const openButtons = document.querySelectorAll('.open-sponsor-modal');
+  const closeBtn = document.getElementById('closeSponsorModalBtn');
+  const form = document.getElementById('sponsorForm');
+
+  if (!modal) return;
+
+  function openModal() {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    document.body.style.overflow = '';
+  }
+
+  openButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const company = document.getElementById('spCompany').value.trim();
+      const contact = document.getElementById('spContact').value.trim();
+      const phone = document.getElementById('spPhone').value.trim();
+      const type = document.getElementById('spType').value;
+
+      const message = encodeURIComponent(
+        `Hi WOW Summit Desk! I am interested in Sponsorship/Stall partnership.\n\nCompany: ${company}\nContact: ${contact}\nPhone: ${phone}\nCategory: ${type}`
+      );
+      window.open(`https://wa.me/919876543210?text=${message}`, '_blank');
+      closeModal();
+      form.reset();
+      alert('Thank you! Redirecting to the WOW Sponsorship WhatsApp Desk.');
+    });
+  }
+}
+
+/* ==========================================================================
+   6. AGENDA FILTER TABS
+   ========================================================================== */
+function initAgendaFilters() {
+  const filterBtns = document.querySelectorAll('.agenda-filter-btn');
+  const agendaItems = document.querySelectorAll('.agenda-item');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+
+      // Update button styles
+      filterBtns.forEach(b => {
+        b.classList.remove('bg-secondary-container', 'text-white', 'shadow-lg');
+        b.classList.add('bg-surface-container', 'text-on-surface-variant');
+      });
+      btn.classList.add('bg-secondary-container', 'text-white', 'shadow-lg');
+      btn.classList.remove('bg-surface-container', 'text-on-surface-variant');
+
+      // Filter schedule items
+      agendaItems.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        if (filter === 'all' || itemCategory === filter) {
+          item.style.display = 'flex';
+          item.classList.add('animate-fadeIn');
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+}
+
+/* ==========================================================================
+   7. FAQ ACCORDION
+   ========================================================================== */
+function initFaqAccordion() {
+  const faqItems = document.querySelectorAll('.faq-item');
+
+  faqItems.forEach(item => {
+    const header = item.querySelector('.faq-header');
+    const content = item.querySelector('.faq-content');
+    const icon = item.querySelector('.faq-icon');
+
+    if (!header || !content) return;
+
+    header.addEventListener('click', () => {
+      const isOpen = !content.classList.contains('hidden');
+
+      // Close all other items
+      faqItems.forEach(other => {
+        const otherContent = other.querySelector('.faq-content');
+        const otherIcon = other.querySelector('.faq-icon');
+        if (otherContent && otherContent !== content) {
+          otherContent.classList.add('hidden');
+          if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+        }
+      });
+
+      // Toggle current
+      if (isOpen) {
+        content.classList.add('hidden');
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      } else {
+        content.classList.remove('hidden');
+        if (icon) icon.style.transform = 'rotate(180deg)';
+      }
+    });
+  });
+}
+
+/* ==========================================================================
+   8. DYNAMIC HERO PARTICLES / STAR CANVAS
+   ========================================================================== */
+function initHeroParticles() {
+  const canvas = document.getElementById('heroStarCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  const particles = [];
+  const particleCount = 45;
+
+  function resize() {
+    width = canvas.width = canvas.parentElement.offsetWidth;
+    height = canvas.height = canvas.parentElement.offsetHeight;
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.size = Math.random() * 2.2 + 0.6;
+      this.alpha = Math.random() * 0.7 + 0.2;
+      this.speed = Math.random() * 0.3 + 0.1;
+      this.color = Math.random() > 0.4 ? '#ffb95f' : '#fda9ff';
+    }
+    update() {
+      this.y -= this.speed;
+      if (this.y < 0) {
+        this.y = height;
+        this.x = Math.random() * width;
+      }
+    }
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
